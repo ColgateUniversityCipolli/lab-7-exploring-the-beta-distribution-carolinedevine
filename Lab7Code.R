@@ -100,6 +100,7 @@ four.case.plot
 # Task 2: Compute the Moments
 ################################################################################
 
+#
 beta.moment <- function(alpha, beta, k, centered){
 
   if (centered == T){
@@ -112,12 +113,224 @@ beta.moment <- function(alpha, beta, k, centered){
   }
 }
 
+# Moments Tested
 beta.moment1 <- tibble(
     Alpha = 2,
     Beta = 5,
     mean = beta.moment(2,5,1,F),
     variance = beta.moment(2,5,2,T),
-    skewness = (beta.moment(2,5,3,T)/((beta.moment(2,5,2,T))^(2/3))),
+    skewness = (beta.moment(2,5,3,T) / 
+              ((beta.moment(2,5,2,T))^(3/2))),
     excess.kurtosis = (beta.moment(2,5,4,T)/(beta.moment(2,5,2,T))^2)-3,
   )
-view(beta.moment1)
+
+beta.moment2 <- tibble(
+  Alpha = 5,
+  Beta = 5,
+  mean = beta.moment(5,5,1,F),
+  variance = beta.moment(5,5,2,T),
+  skewness = (beta.moment(5,5,3,T) / 
+                ((beta.moment(5,5,2,T))^(3/2))),
+  excess.kurtosis = (beta.moment(5,5,4,T)/
+                       (beta.moment(5,5,2,T))^2)-3,
+)
+
+beta.moment3 <- tibble(
+  Alpha = 5,
+  Beta = 2,
+  mean = beta.moment(5,2,1,F),
+  variance = beta.moment(5,2,2,T),
+  skewness = (beta.moment(5,2,3,T) / 
+                ((beta.moment(5,2,2,T))^(3/2))),
+  excess.kurtosis = (beta.moment(5,2,4,T)/
+                       (beta.moment(5,2,2,T))^2)-3,
+)
+
+beta.moment4 <- tibble(
+  Alpha = 0.5,
+  Beta = 0.5,
+  mean = beta.moment(0.5,0.5,1,F),
+  variance = beta.moment(0.5,0.5,2,T),
+  skewness = (beta.moment(0.5,0.5,3,T) / 
+                ((beta.moment(0.5,0.5,2,T))^(3/2))),
+  excess.kurtosis = (beta.moment(0.5,0.5,4,T)/
+                       (beta.moment(0.5,0.5,2,T))^2)-3,
+)
+
+confirmed.results <- bind_rows(
+  beta.moment1,
+  beta.moment2,
+  beta.moment3,
+  beta.moment4
+)
+view(confirmed.results)
+# They match, the skewness gives us a value instead of 0, but it is essentially 0
+
+################################################################################
+# Task 3: Do Data Summaries Help?
+################################################################################
+library(e1071)
+
+# Beta(2,5)
+set.seed(7272) # Set seed so we all get the same results.
+sample.size <- 500 # Specify sample details
+alpha <- 2
+beta <- 5
+beta.sample.1 <- rbeta(n = sample.size,  # sample size
+                     shape1 = alpha,   # alpha parameter
+                     shape2 = beta)    # beta parameter
+fig1.data <-  tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a grid of points
+  mutate(beta.pdf = dbeta(x, alpha, beta))
+
+beta.sample.data.1 <- tibble(data = beta.sample.1)
+
+sample.summary.1 <- beta.sample.data.1 |>
+  summarize(
+    Alpha = alpha,
+    Beta = beta,
+    mean = mean(data),
+    variance = var(data),
+    skewness = skewness(data),
+    excess.kurtosis = kurtosis(data)
+  )
+
+hist.1 <- ggplot()+
+  geom_histogram(data = beta.sample.data.1,
+                 aes(x = beta.sample.1, y = after_stat(density)),
+                 breaks = seq(-0.5,1.2,0.1),
+                 fill = "grey30",
+                 color = "lightgray"
+  ) + 
+  geom_density(data = beta.sample.data.1,
+               aes(x = beta.sample.1, color = "Sample Density"), show.legend = T)+
+  geom_line(data = fig1.data,
+            aes(x = x, y = beta.pdf, color = "Beta Distribution"), show.legend = T)+
+  geom_hline(yintercept = 0) + 
+  labs(color = "Line", title = "Beta(2,5)")
+hist.1
+
+# Beta(5,5)
+set.seed(7272) # Set seed so we all get the same results.
+sample.size <- 500 # Specify sample details
+alpha <- 5
+beta <- 5
+beta.sample.2 <- rbeta(n = sample.size,  # sample size
+                       shape1 = alpha,   # alpha parameter
+                       shape2 = beta)    # beta parameter
+fig2.data <-  tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a grid of points
+  mutate(beta.pdf = dbeta(x, alpha, beta))
+
+beta.sample.data.2 <- tibble(data = beta.sample.2)
+
+sample.summary.2 <- beta.sample.data.2 |>
+  summarize(
+    Alpha = alpha,
+    Beta = beta,
+    mean = mean(data),
+    variance = var(data),
+    skewness = skewness(data),
+    excess.kurtosis = kurtosis(data)
+  )
+
+hist.2 <- ggplot()+
+  geom_histogram(data = beta.sample.data.2,
+                 aes(x = beta.sample.2, y = after_stat(density)),
+                 breaks = seq(-0.5,1.2,0.1),
+                 fill = "grey30",
+                 color = "lightgray"
+  ) + 
+  geom_density(data = beta.sample.data.2,
+               aes(x = beta.sample.2, color = "Sample Density"), show.legend = T)+
+  geom_line(data = fig2.data,
+            aes(x = x, y = beta.pdf, color = "Beta Distribution"), show.legend = T)+
+  geom_hline(yintercept = 0) + 
+  labs(color = "Line", title = "Beta(5,5)")
+hist.2
+
+# Beta(5,2)
+set.seed(7272) # Set seed so we all get the same results.
+sample.size <- 500 # Specify sample details
+alpha <- 5
+beta <- 2
+beta.sample.3 <- rbeta(n = sample.size,  # sample size
+                       shape1 = alpha,   # alpha parameter
+                       shape2 = beta)    # beta parameter
+fig3.data <-  tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a grid of points
+  mutate(beta.pdf = dbeta(x, alpha, beta))
+
+beta.sample.data.3 <- tibble(data = beta.sample.3)
+
+sample.summary.3 <- beta.sample.data.3 |>
+  summarize(
+    Alpha = alpha,
+    Beta = beta,
+    mean = mean(data),
+    variance = var(data),
+    skewness = skewness(data),
+    excess.kurtosis = kurtosis(data)
+  )
+
+hist.3 <- ggplot()+
+  geom_histogram(data = beta.sample.data.3,
+                 aes(x = beta.sample.3, y = after_stat(density)),
+                 breaks = seq(-0.5,1.2,0.1),
+                 fill = "grey30",
+                 color = "lightgray"
+  ) + 
+  geom_density(data = beta.sample.data.3,
+               aes(x = beta.sample.3, color = "Sample Density"), show.legend = T)+
+  geom_line(data = fig3.data,
+            aes(x = x, y = beta.pdf, color = "Beta Distribution"), show.legend = T)+
+  geom_hline(yintercept = 0) + 
+  labs(color = "Line", title = "Beta(5,2)")
+hist.3
+
+# Beta(0.5,0.5)
+set.seed(7272) # Set seed so we all get the same results.
+sample.size <- 500 # Specify sample details
+alpha <- 0.5
+beta <- 0.5
+beta.sample.4 <- rbeta(n = sample.size,  # sample size
+                       shape1 = alpha,   # alpha parameter
+                       shape2 = beta)    # beta parameter
+fig4.data <-  tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a grid of points
+  mutate(beta.pdf = dbeta(x, alpha, beta))
+
+beta.sample.data.4 <- tibble(data = beta.sample.4)
+
+sample.summary.4 <- beta.sample.data.4 |>
+  summarize(
+    Alpha = alpha,
+    Beta = beta,
+    mean = mean(data),
+    variance = var(data),
+    skewness = skewness(data),
+    excess.kurtosis = kurtosis(data)
+  )
+
+hist.4 <- ggplot()+
+  geom_histogram(data = beta.sample.data.4,
+                 aes(x = beta.sample.4, y = after_stat(density)),
+                 breaks = seq(-0.5,1.2,0.1),
+                 fill = "grey30",
+                 color = "lightgray"
+  ) + 
+  geom_density(data = beta.sample.data.4,
+               aes(x = beta.sample.4, color = "Sample Density"), show.legend = T)+
+  geom_line(data = fig4.data,
+            aes(x = x, y = beta.pdf, color = "Beta Distribution"), show.legend = T)+
+  geom_hline(yintercept = 0) + 
+  labs(color = "Line", title = "Beta(0.5,0.5)")
+hist.4
+
+sample.combined <- hist.1 + hist.2 + hist.3 + hist.4
+sample.combined
+
+sample.summary.results <- bind_rows(
+  sample.summary.1,
+  sample.summary.2,
+  sample.summary.3,
+  sample.summary.4
+)
+view(sample.summary.results)
+
