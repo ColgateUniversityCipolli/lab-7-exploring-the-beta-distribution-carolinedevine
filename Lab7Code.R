@@ -190,8 +190,8 @@ sample.summary.1 <- beta.sample.data.1 |>
     Beta = beta,
     mean = mean(data),
     variance = var(data),
-    skewness = skewness(data),
-    excess.kurtosis = kurtosis(data)
+    skewness = e1071::skewness(data),
+    excess.kurtosis =  e1071::kurtosis(data)
   )
 
 hist.1 <- ggplot()+
@@ -228,8 +228,8 @@ sample.summary.2 <- beta.sample.data.2 |>
     Beta = beta,
     mean = mean(data),
     variance = var(data),
-    skewness = skewness(data),
-    excess.kurtosis = kurtosis(data)
+    skewness = e1071::skewness(data),
+    excess.kurtosis =  e1071::kurtosis(data)
   )
 
 hist.2 <- ggplot()+
@@ -266,8 +266,8 @@ sample.summary.3 <- beta.sample.data.3 |>
     Beta = beta,
     mean = mean(data),
     variance = var(data),
-    skewness = skewness(data),
-    excess.kurtosis = kurtosis(data)
+    skewness = e1071::skewness(data),
+    excess.kurtosis =  e1071::kurtosis(data)
   )
 
 hist.3 <- ggplot()+
@@ -304,8 +304,8 @@ sample.summary.4 <- beta.sample.data.4 |>
     Beta = beta,
     mean = mean(data),
     variance = var(data),
-    skewness = skewness(data),
-    excess.kurtosis = kurtosis(data)
+    skewness = e1071::skewness(data),
+    excess.kurtosis =  e1071::kurtosis(data)
   )
 
 hist.4 <- ggplot()+
@@ -323,9 +323,12 @@ hist.4 <- ggplot()+
   labs(color = "Line", title = "Beta(0.5,0.5)")
 hist.4
 
-sample.combined <- hist.1 + hist.2 + hist.3 + hist.4
+
+# Combined Plot
+sample.combined <- hist.1 + hist.2 + hist.3 + hist.4+ plot_layout(guides = "collect")
 sample.combined
 
+# Combined Summaries
 sample.summary.results <- bind_rows(
   sample.summary.1,
   sample.summary.2,
@@ -333,4 +336,119 @@ sample.summary.results <- bind_rows(
   sample.summary.4
 )
 view(sample.summary.results)
+
+################################################################################
+# Task 4: Is Sample Size Important?
+################################################################################
+library(cumstats)
+#help("cumstats")
+
+set.seed(7272) # Set seed so we all get the same results.
+sample.size <- 500 # Specify sample details
+alpha <- 2
+beta <- 5
+beta.sample.1 <- rbeta(n = sample.size,  # sample size
+                       shape1 = alpha,   # alpha parameter
+                       shape2 = beta)    # beta parameter
+# fig1.data <-  tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a grid of points
+#   mutate(beta.pdf = dbeta(x, alpha, beta))
+true.mean <- alpha/(alpha+beta)
+true.variance <- (alpha*beta)/((alpha + beta)^2 * (alpha + beta + 1))
+true.skewness <- (2*(beta - alpha)*sqrt(alpha + beta +1))/((alpha + beta + 2)*sqrt(alpha*beta))
+true.kurtosis <- ( 6 * ((alpha-beta)^2 * (alpha + beta + 1) - ((alpha*beta)*(alpha+beta+2))))/
+  ((alpha*beta)*(alpha + beta + 2)*(alpha + beta +3))
+
+cumulative.sum <- data.frame(
+    Alpha = alpha,
+    Beta = beta,
+    mean =cummean(beta.sample.1),
+    variance = cumvar(beta.sample.1),
+    skewness = cumskew(beta.sample.1),
+    kurtosis = cumkurt(beta.sample.1)-3 # regular kurtosis
+  )
+cumulative.sum <- cumulative.sum|>
+  mutate(observation = 1:n())
+
+
+cs.mean1 <- ggplot(data = cumulative.sum)+
+        geom_line(aes(x=observation, y = mean, color = "Cumulative Mean"), show.legend = F) + 
+        geom_hline(yintercept = true.mean)+
+        labs(title = "Cumulative Mean Across Sample Sizes",
+             x = "Sample Size",
+             y = "Mean",
+             color = "")
+  
+cs.var1 <- ggplot(data = cumulative.sum)+
+  geom_line(aes(x=observation, y = variance, color = "Cumulative Variance"), show.legend = F) + 
+  geom_hline(yintercept = true.variance)+
+  labs(title = "Cumulative Variance Across Sample Sizes",
+       x = "Sample Size",
+       y = "Variance",
+       color = "")
+
+cs.skew1 <- ggplot(data = cumulative.sum)+
+  geom_line(aes(x=observation, y = skewness, color = "Cumulative Skewness"), show.legend = F) + 
+  geom_hline(yintercept = true.skewness)+
+  labs(title = "Cumulative Skewness Across Sample Sizes",
+       x = "Sample Size",
+       y = "Skewness",
+       color = "")
+
+cs.kurt1 <- ggplot(data = cumulative.sum)+
+  geom_line(aes(x=observation, y = kurtosis, color = "Cumulative Regular Kurtosis"), show.legend = F) + 
+  geom_hline(yintercept = true.kurtosis)+
+  labs(title = "Cumulative Kurtosis Across Sample Sizes",
+       x = "Sample Size",
+       y = "Kurtosis",
+       color = "")
+        
+cs.1 <- cs.mean1 + cs.var1 + cs.skew1 + cs.kurt1
+  
+
+# New Data 
+
+for (i in (2:50)){
+  set.seed(7272+i) # Set seed so we all get the same results.
+  sample.size <- 500 # Specify sample details
+  alpha <- 2
+  beta <- 5
+  beta.sample.1 <- rbeta(n = sample.size,  # sample size
+                         shape1 = alpha,   # alpha parameter
+                         shape2 = beta)    # beta parameter
+
+  
+  cumulative.sum <- data.frame(
+    Alpha = alpha,
+    Beta = beta,
+    mean =cummean(beta.sample.1),
+    variance = cumvar(beta.sample.1),
+    skewness = cumskew(beta.sample.1),
+    kurtosis = cumkurt(beta.sample.1)-3 # regular kurtosis
+  )
+  cumulative.sum <- cumulative.sum|>
+    mutate(observation = 1:n())
+  
+  cs.mean1 <- cs.mean1 +
+    geom_line(data = cumulative.sum, aes(x = observation, y = mean), color = i)
+  
+  cs.var1 <- cs.var1 +
+    geom_line(data = cumulative.sum, aes(x = observation, y = variance), color = i)
+  
+  cs.skew1 <- cs.skew1 +
+    geom_line(data = cumulative.sum, aes(x = observation, y = skewness), color = i)
+  
+  cs.kurt1 <- cs.kurt1 +
+    geom_line(data = cumulative.sum, aes(x = observation, y = kurtosis), color = i)
+  
+  cs.1 <- cs.mean1 + cs.var1 + cs.skew1 + cs.kurt1
+  
+}
+cs.1
+
+################################################################################
+# Task 5: How can we model the variable?
+################################################################################
+
+
+
 
