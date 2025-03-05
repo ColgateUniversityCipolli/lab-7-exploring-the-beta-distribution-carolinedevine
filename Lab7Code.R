@@ -473,12 +473,11 @@ for (i in 1:1000){
 }
 view(new.results)
 
-
 # Plot Histograms for Each Statistic with Estimated Density
 # Mean Plot
 mean.plot <- ggplot() +
   geom_histogram(data = new.results, aes(x = mean, y = after_stat(density)), 
-                 bins = 40,
+                 bins = 40,  # number of bins, dividing data 
                  fill = "grey30",
                  color = "lightgray")+
   geom_density(data = new.results,
@@ -492,7 +491,7 @@ mean.plot <- ggplot() +
 # Variance Plot
 var.plot <- ggplot() +
   geom_histogram(data = new.results, aes(x = variance, y = after_stat(density)), 
-                 bins = 40,
+                 bins = 40, 
                  fill = "grey30",
                  color = "lightgray")+
   geom_density(data = new.results,
