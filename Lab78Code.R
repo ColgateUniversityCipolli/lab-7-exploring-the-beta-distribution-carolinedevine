@@ -342,6 +342,7 @@ view(sample.summary.results)
 ################################################################################
 library(cumstats)
 #help("cumstats")
+# cunstats overides e1071::skewness and e1071::kurtosis
 
 set.seed(7272) # Set seed so we all get the same results.
 sample.size <- 500 # Specify sample details
@@ -532,3 +533,121 @@ kurt.plot <- ggplot() +
 
 new.data.histogram <- mean.plot + var.plot + skew.plot + kurt.plot + plot_layout(guides = "collect")
 new.data.histogram
+
+################################################################################
+# Task 6: Collect and Clean Data
+################################################################################
+
+# Country death rates worldwide can be modeled with a beta distribution
+
+# Collect Data from World Bank
+worldbankdat <- read_csv("worldbank.csv",skip = 3)
+
+
+# Focus on 2022
+worldbank2022 <- worldbankdat |>
+  select("Country Name", "Country Code", "2022")|> 
+  filter(!is.na(`2022`)) |>
+  mutate(death.rate = `2022`/1000) |>
+  select(-c("2022"))
+view(worldbank2022)
+
+################################################################################
+# Task 7: What are alpha and beta?
+################################################################################
+library(nleqslv)
+# Method of Moments Estimate (MOMs)
+MOM.beta <- function(data, par){
+  alpha <- par[1]
+  beta <- par[2]
+  
+  EX <- alpha/(alpha + beta)
+  EX2 <- ((alpha+1)*alpha)/((alpha+beta+1)*(alpha+beta))
+  m1 <- mean(data, na.rm=T)
+  m2 <- mean(data^2,na.rm=T)
+  
+  output <- c((EX-m1), 
+              (EX2 - m2))
+  
+  return(output) # Goal: find alpha and beta so this is 0
+}
+
+guess <- c(alpha = 2, beta = 5)
+mom.beta.solutions <- nleqslv(x = guess, # guess
+        fn = MOM.beta,
+        data=worldbank2022$death.rate)
+mom.beta.solutions
+
+# Method of Likelihood Estimates (MLEs)
+llbeta <- function(data, par, neg=FALSE){
+  alpha <- par[1]
+  beta <- par[2]
+  loglik <- sum(log(dbeta(x = data, alpha, beta)), na.rm = T)
+  
+  return(ifelse(neg, -loglik, loglik))
+}
+
+mle.beta.solutions <- optim(par = guess,
+      fn = llbeta,
+      data = worldbank2022$death.rate,
+      neg = T
+)
+
+# Plot Histogram of Data
+
+beta.data <- tibble(death.rate = seq(min(worldbank2022$death.rate, na.rm = T), 
+                                     max(worldbank2022$death.rate, na.rm = T), 
+                                     length.out = 1000)) |>
+  mutate(
+    mom.density = dbeta(death.rate, mom.beta.solutions$x[1], mom.beta.solutions$x[2]),
+    mle.density = dbeta(death.rate, mle.beta.solutions$par[1], mle.beta.solutions$par[2])
+  )
+view(beta.data)
+
+histogram.2022 <- ggplot() +
+  geom_histogram(data = worldbank2022, aes(x = death.rate, y = after_stat(density)), 
+                 bins = 40,
+                 fill = "pink",
+                 color = "lightgray")+
+  geom_line(data = beta.data, aes(x = death.rate, y = mom.density, color = "MOM Estimate"))+
+  geom_line(data = beta.data, aes(x = death.rate, y = mle.density, color = "MLE Estimate"))+
+  geom_density(data = worldbank2022,
+               aes(x = death.rate,
+                   color = "Density"))+
+  labs(title = "Histogram of Death Rate", 
+       x = "Death Rate", 
+       y = "Density",
+       color = "Legend")
+
+
+################################################################################
+# Task 8: Which estimators should we use?
+################################################################################
+
+for (i in (1:1000)){
+  set.seed(7272+i) # Set seed so we all get the same results.
+  sample.size <- 266 # n = 266
+  alpha <- 8
+  beta <- 950
+  guess <- c(alpha, beta)
+  mom.beta.solutions <- optim(par = guess,
+                              fn = llbeta,
+                              data = sample.size,
+                              neg = T
+  )
+  
+  
+  estimate.results <- data.frame(
+    Alpha = alpha,
+    Beta = beta,
+    mean =mean(beta.sample.1),
+    variance = var(beta.sample.1),
+    skewness = e1071::skewness(beta.sample.1),
+    kurtosis = e1071::kurtosis(beta.sample.1)-3 
+  )
+  
+  estimates <- bind_rows(estimates, estimate.results)
+  
+}
+view(new.results)
+
