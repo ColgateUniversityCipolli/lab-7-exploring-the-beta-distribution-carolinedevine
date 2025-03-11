@@ -623,31 +623,37 @@ histogram.2022 <- ggplot() +
 ################################################################################
 # Task 8: Which estimators should we use?
 ################################################################################
-
+estimates <- data.frame( MOM_Alpha = numeric(1000),
+                         MOM_Beta = numeric(1000),
+                         MLE_Alpha = numeric(1000),
+                         MLE_Beta = numeric(1000))
 for (i in (1:1000)){
   set.seed(7272+i) # Set seed so we all get the same results.
   sample.size <- 266 # n = 266
   alpha <- 8
   beta <- 950
+  beta.dat <- rbeta(n = sample.size,  # sample size
+                         shape1 = alpha,   # alpha parameter
+                         shape2 = beta)    # beta parameter
+  
+  
   guess <- c(alpha, beta)
-  mom.beta.solutions <- optim(par = guess,
+  mom.beta.sol <- nleqslv(x = guess, # guess
+                                fn = MOM.beta,
+                                data=beta.dat)
+  mom.beta <- mom.beta.sol$x[2]
+  mom.alpha <- mom.beta.sol$x[1]
+  
+  mle.beta.sol <- optim(par = guess,
                               fn = llbeta,
-                              data = sample.size,
-                              neg = T
-  )
+                              data = beta.dat,
+                              neg = T)
   
+  mle.beta <- mom.beta.sol$par[2]
+  mle.alpha <- mom.beta.sol$par[1]
   
-  estimate.results <- data.frame(
-    Alpha = alpha,
-    Beta = beta,
-    mean =mean(beta.sample.1),
-    variance = var(beta.sample.1),
-    skewness = e1071::skewness(beta.sample.1),
-    kurtosis = e1071::kurtosis(beta.sample.1)-3 
-  )
-  
-  estimates <- bind_rows(estimates, estimate.results)
+  estimates[i, ] <- c(mom.alpha, mom.beta, mle.alpha, mle.beta)
   
 }
-view(new.results)
+view(estimates)
 
