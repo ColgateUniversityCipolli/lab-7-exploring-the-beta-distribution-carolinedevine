@@ -59,11 +59,11 @@ figure.data.2 <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>
 
 plot2 <- ggplot(data = figure.data.2)+
   geom_line(aes(x=x, y=beta.pdf, color="Beta(5,5)")) +      
-  geom_hline(yintercept=0)+                                            # plot x axis
-  theme_bw()+                                                          # change theme
-  xlab("x")+                                                           # label x axis
-  ylab("Density")+                                                     # label y axis
-  scale_color_manual("", values = c("black", "grey"))+                 # change colors
+  geom_hline(yintercept=0)+                                            
+  theme_bw()+                                                          
+  xlab("x")+                                                           
+  ylab("Density")+                                                     
+  scale_color_manual("", values = c("black", "grey"))+                 
   theme(legend.position = "bottom") 
 
 # Beta(5,2)
@@ -72,11 +72,11 @@ figure.data.3 <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>
 
 plot3 <- ggplot(data = figure.data.3)+
   geom_line(aes(x=x, y=beta.pdf, color="Beta(5,2)")) +      
-  geom_hline(yintercept=0)+                                            # plot x axis
-  theme_bw()+                                                          # change theme
-  xlab("x")+                                                           # label x axis
-  ylab("Density")+                                                     # label y axis
-  scale_color_manual("", values = c("black", "grey"))+                 # change colors
+  geom_hline(yintercept=0)+                                            
+  theme_bw()+                                                          
+  xlab("x")+                                                           
+  ylab("Density")+                                                     
+  scale_color_manual("", values = c("black", "grey"))+                 
   theme(legend.position = "bottom") 
 
 # Beta(0.5,0.5)
@@ -85,11 +85,11 @@ figure.data.4 <- tibble(x = seq(-0.25, 1.25, length.out=1000))|>
 
 plot4 <- ggplot(data = figure.data.4)+
   geom_line(aes(x=x, y=beta.pdf, color="Beta(0.5,0.5)")) +      
-  geom_hline(yintercept=0)+                                            # plot x axis
-  theme_bw()+                                                          # change theme
-  xlab("x")+                                                           # label x axis
-  ylab("Density")+                                                     # label y axis
-  scale_color_manual("", values = c("black", "grey"))+                 # change colors
+  geom_hline(yintercept=0)+                                            
+  theme_bw()+                                                          
+  xlab("x")+                                                           
+  ylab("Density")+                                                     
+  scale_color_manual("", values = c("black", "grey"))+                 
   theme(legend.position = "bottom") 
 
 # Combined Plot of 4 Distributions
@@ -370,7 +370,6 @@ cumulative.sum <- data.frame(
 cumulative.sum <- cumulative.sum|>
   mutate(observation = 1:n())
 
-
 cs.mean1 <- ggplot(data = cumulative.sum)+
         geom_line(aes(x=observation, y = mean, color = "Cumulative Mean"), show.legend = F) + 
         geom_hline(yintercept = true.mean)+
@@ -594,7 +593,6 @@ mle.beta.solutions <- optim(par = guess,
 )
 
 # Plot Histogram of Data
-
 beta.data <- tibble(death.rate = seq(min(worldbank2022$death.rate, na.rm = T), 
                                      max(worldbank2022$death.rate, na.rm = T), 
                                      length.out = 1000)) |>
@@ -623,10 +621,10 @@ histogram.2022 <- ggplot() +
 ################################################################################
 # Task 8: Which estimators should we use?
 ################################################################################
-estimates <- data.frame( MOM_Alpha = numeric(1000),
-                         MOM_Beta = numeric(1000),
-                         MLE_Alpha = numeric(1000),
-                         MLE_Beta = numeric(1000))
+estimates <- data.frame( mom.alpha = numeric(1000),
+                         mom.beta = numeric(1000),
+                         mle.alpha = numeric(1000),
+                         mle.beta = numeric(1000))
 for (i in (1:1000)){
   set.seed(7272+i) # Set seed so we all get the same results.
   sample.size <- 266 # n = 266
@@ -656,4 +654,89 @@ for (i in (1:1000)){
   
 }
 view(estimates)
+
+# True Parameters
+alphaT <- 8
+betaT <- 950
+
+# Bias for Estimates
+bias.mom.alpha <- mean(estimates$mom.alpha) - alphaT
+bias.mom.beta <- mean(estimates$mom.beta) - betaT
+
+bias.mle.alpha <- mean(estimates$mle.alpha) - alphaT
+bias.mle.beta <- mean(estimates$mle.beta) - betaT
+
+# Precision for Estimates
+precision.mom.alpha <- 1 / var(estimates$mom.alpha)
+precision.mom.beta <- 1 / var(estimates$mom.beta)
+
+precision.mle.alpha <- 1 / var(estimates$mle.alpha)
+precision.mle.beta <- 1 / var(estimates$mle.beta)
+
+# Mean Squared Error for Estimates
+mse.mom.alpha <- var(estimates$mom.alpha) + bias.mom.alpha^2
+mse.mom.beta <- var(estimates$mom.beta) + bias.mom.beta^2
+
+mse.mle.alpha <- var(estimates$mle.alpha) + bias.mle.alpha^2
+mse.mle.beta <- var(estimates$mle.beta) + bias.mle.beta^2
+
+# Summary Table
+summary.table <- data.frame(
+  Parameter = c("Alpha", "Beta"),
+  Bias_MOM = c(bias.mom.alpha, bias.mom.beta),
+  Bias_MLE = c(bias.mle.alpha, bias.mle.beta),
+  Precision_MOM = c(precision.mom.alpha, precision.mom.beta),
+  Precision_MLE = c(precision.mle.alpha, precision.mle.beta),
+  MSE_MOM = c(mse.mom.alpha, mse.mom.beta),
+  MSE_MLE = c(mse.mle.alpha, mse.mle.beta)
+)
+
+view(summary.table)
+
+# create density plots
+density.plot.1 <- ggplot() +
+  geom_density(data=estimates, aes(x=mom.alpha, color="Density")) +
+  ggtitle("MOM Alpha Density") +
+  xlab("MOM Density") +
+  ylab("Density")
+
+density.plot.2 <- ggplot() + 
+  geom_density(data=estimates, aes(x=mom.beta, color="Density")) +
+  ggtitle("MOM Beta Density") +
+  xlab("MOM Density") +
+  ylab("Density")
+
+density.plot.3 <- ggplot() +
+  geom_density(data=estimates, aes(x=mle.alpha, color="Density")) +
+  ggtitle("MLE Alpha Density") +
+  xlab("MLE Density") +
+  ylab("Density")
+
+density.plot.4 <- ggplot() + 
+  geom_density(data=estimates, aes(x=mle.beta, color="Density")) +
+  ggtitle("MLE Beta Density") +
+  xlab("MLE Density") +
+  ylab("Density")
+
+plots <- density.plot.1 + density.plot.2 + density.plot.3 + density.plot.4 +  plot_layout(guides = "collect")
+
+plot.alpha <- ggplot() +
+  geom_density(data=estimates, aes(x=mom.alpha, color="MOM")) +
+  geom_density(data=estimates, aes(x=mle.alpha, color="MLE")) +
+  theme_bw() +
+  ggtitle("Alpha Density") +
+  xlab("Alpha") +
+  ylab("Density") +
+  scale_color_manual(name = "Estimator", values = c("MOM" = "blue", "MLE" = "red"))
+
+plot.beta <- ggplot() +
+  geom_density(data=estimates, aes(x=mom.beta, color="MOM")) +
+  geom_density(data=estimates, aes(x=mle.beta, color="MLE")) +
+  theme_bw() +
+  ggtitle("Beta Density") +
+  xlab("Beta") +
+  ylab("Density") +
+  scale_color_manual(name = "Estimator", values = c("MOM" = "blue", "MLE" = "red"))
+
+plot.alpha + plot.beta +  plot_layout(guides = "collect")
 
