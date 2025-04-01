@@ -39,20 +39,23 @@
 
 \begin{multicols}{2}
 \begin{abstract}
-This document provides a basic template for the 2-page labs we will complete each week. Here, briefly summarize what you did and why it might be helpful. Provide all the top-line conclusions, but avoid providing \emph{all} the details. Results should be limited to ``we show X, Y, and Z."
+This lab evaluates and examines the beta distribution seeing how varying parameters affect its shape and statistical properties, focusing on the mean, variance, skewness, and excess kurtosis. Through analyzing real-world data from World Bank, we see the accuracy of how sample estimates approximate the population parameters with different sample sizes and estimators. Our results show that Maximum Likelihood Estimation provides slightly more precise estimates, but both Method of Moments and Maximum Likelihood Estimation are sufficient estimators. 
 \end{abstract}
 
-\noindent \textbf{Keywords:} What topics does the lab cover concerning class? List 3-4 key terms here, separated by semicolons.
+\noindent \textbf{Keywords:} Beta Distribution, Real-World Data, Parameter Estimation, MLE, MOM, Law of Large Numbers
 
 \section{Introduction}
 
-
+The beta distribution is a continuous distribution modeling a random variable \texttt{X} ranging from 0 to 1. It is extremely useful for modeling proportions, probabilities, or rates. It is also known for being a flexible distribution in regards to its shape, meaning it can exhibit left-skewness, right-skewness, or symmetrical dependent upon its parameters. It is shaped by two parameters, \(\alpha\)\(>\)0 and \(\beta\)\(>\)0. The goal of this lab is to understand the following questions: What is the beta distribution? What does it look like? What is it used for? What are its properties? What information do the simulations and real data analysis provide? Thus, this lab assesses both the theoretical properties of the beta distribution and sees how these properties hold through estimation from real-world data. 
 
 \section{Density Functions and Parameters}
-\textbf{ADD PDF of beta}
-\textbf{ADD parameters}
+The beta distribution is defined by its probability density function (PDF).
+\[
+f(x; \alpha, \beta) = \frac{\Gamma(\alpha + \beta)}{\Gamma\alpha\Gamma\beta} \, x^{\alpha - 1} (1 - x)^{\beta - 1}I(x \in [0,1])
+\] 
+The beta distribution's shape is defined by its parameters and thus, the population-level characteristics are described by those parameters. 
 
-To explore the beta distribution, we focused on four cases: \(\text{Beta}(\alpha = 2, \beta = 5)\), \(\text{Beta}(\alpha = 5, \beta = 5)\), \(\text{Beta}(\alpha = 5, \beta = 2)\), and \(\text{Beta}(\alpha = 0.5, \beta = 0.5)\). We calculated the population-level characteristics(mean, variance, skewness, and excess kurtosis) for all four cases by deriving the formulas and numerically analyzing them for each case (Summarized in Table 1). 
+To explore the beta distribution, we focused on four cases: \(\text{Beta}(\alpha = 2, \beta = 5)\), \(\text{Beta}(\alpha = 5, \beta = 5)\), \(\text{Beta}(\alpha = 5, \beta = 2)\), and \(\text{Beta}(\alpha = 0.5, \beta = 0.5)\). We calculated the population-level characteristics(mean, variance, skewness, and excess kurtosis) for all four cases by deriving the formulas and numerically analyzing them for each case (Table \ref{Table 1}). 
 
 <<echo=FALSE, eval=TRUE, results="asis", message=FALSE, warning=FALSE, size='scriptsize'>>=
 ################################################################################
@@ -107,13 +110,92 @@ The beta distribution includes many important properties such as mean, variance,
 
 Since the goal of summarizing this data is to approximate what the population distribution might be, we further analyze how different sample sizes effect the sample estimates. Initially randomly selecting sample sizes of \texttt{n} = 500 from the beta distribution, histograms for each sample with estimated density and true PDF were plotted (Figure \ref{plot2}) accompanied by a numerical summary (Table \ref{Table 3}). Comparing numerical summaries and plots from sample to Table \ref{Table 1}, confirms that the sample estimates the approximate theoretical values. 
 
+With statistics, sample size can heavily influence the accuracy of estimates. When estimating parameters of a theoretical distribution like the beta distribution, the sample size can affect the variability of the numerical statistics. The Law of Large Numbers (LLN) states when the sample size increases, the sample mean converges to the true population mean. This applies to the sample statistics we are looking at. To analyze this, we computed the cumulative numerical summaries for \(\text{Beta}(\alpha = 2, \beta = 5)\) data using the \texttt{cumstats} package, plotting the cumulative statistics against the true values that describe the actual population distribution seen in Table \ref{Table 1} \citep{Cumstats}. In Figure \ref{plot3}, when the sample size (\texttt{n}) is small, there is more variability in the statistics. As the sample size increases, the statistics converge closer and closer to the true population statistic. This highlights the importance of sample size when calculating samples from a distribution.
+
+Further analyzing the \(\text{Beta}(\alpha = 2, \beta = 5)\) distribution, we simulated 1000 samples, computing the mean, variance, skewness, and excess kurtosis to summarize the statistics to see their distribution. Figure \ref{plot4} shows 4 histograms to visually see the sampling distributions of each statistic. The distribution of the sample means looks to follow a normal distribution with a peak at 0.2875 (the theoretical population mean for  \(\text{Beta}(\alpha = 2, \beta = 5)\)). The variance follows the same pattern as the mean. The skewness appears normal with variability in spread indicating skewness estimates are more variable with smaller samples. Lastly, the excess kurtosis follows a similar analysis to the skewness. This further emphasizes the importance of sample size. 
 
 \section{Estimators}
+Both the parameters of the beta distribution,  \(\alpha\) and \(\beta\), are unknown in real-world applications, thus estimation of these parameters are essential in interpreting observed data. The most widely used estimators are the Methods of Moments (MOM) and the Maximum Likelihood Estimation (MLE). MOM equates the sample moments to the theoretical moments of distribution by solving a system of equations to find the parameter estimates. Typically, MOM is easy to compute when the moments of distribution are available in closed form and sample sizes are sufficiently large. MLE, on the other hand, calculates the parameter estimates using the likelihood function for the given distribution, in this case, the Beta distribution, and maximizes it based on the observed data. This is used over the MOM when accuracy is required for observed data of various sample sizes, the likelihood function is not difficult to derive, and for more complex distributions. Computationally, the log-likelihood function is easier to work with using the \texttt{optim()} function in \texttt{R} to maximize it. 
 
 \section{Example}
+Faith (2022) suggested that country death rates worldwide can be modeled with a beta distribution \citep{Fatih2022}. To see if the beta distribution fits the real-world death rate data, we analyzed the data from the World Bank in 2022 with the rate as deaths per 1,000 citizens. Using MOM and MLE, we estimated the parameters for the death rate data, comparing the MOM and MLE estimates to see which method would provide a better estimate of the beta distribution parameters for this data \citep{nleqslv}. Table \ref{Table 4} shows that both the MOM and MLE provide close estimates. There is a slight increase in variability for the parameter \(\beta\). Figure \ref{plot5} shows a visual representation of the fit of both the MOM and the MLE which both indicate strong, reasonable fits to the distribution. 
+<<echo=FALSE, eval=TRUE, results="asis", message=FALSE, warning=FALSE, size='scriptsize'>>=
+################################################################################
+# Task 6: Collect and Clean Data
+################################################################################
+
+# Country death rates worldwide can be modeled with a beta distribution
+
+# Collect Data from World Bank
+worldbankdat <- read_csv("worldbank.csv",skip = 3)
+
+
+# Focus on 2022
+worldbank2022 <- worldbankdat |>
+  select("Country Name", "Country Code", "2022")|> 
+  filter(!is.na(`2022`)) |>
+  mutate(death.rate = `2022`/1000) |>
+  select(-c("2022"))
+################################################################################
+# Task 7: What are alpha and beta?
+################################################################################
+library(nleqslv)
+# Method of Moments Estimate (MOMs)
+MOM.beta <- function(data, par){
+  alpha <- par[1]
+  beta <- par[2]
+  
+  EX <- alpha/(alpha + beta)
+  EX2 <- ((alpha+1)*alpha)/((alpha+beta+1)*(alpha+beta))
+  m1 <- mean(data, na.rm=T)
+  m2 <- mean(data^2,na.rm=T)
+  
+  output <- c((EX-m1), 
+              (EX2 - m2))
+  
+  return(output) # Goal: find alpha and beta so this is 0
+}
+
+guess <- c(alpha = 2, beta = 5)
+mom.beta.solutions <- nleqslv(x = guess, # guess
+        fn = MOM.beta,
+        data=worldbank2022$death.rate)
+
+# Method of Likelihood Estimates (MLEs)
+llbeta <- function(data, par, neg=FALSE){
+  alpha <- par[1]
+  beta <- par[2]
+  loglik <- sum(log(dbeta(x = data, alpha, beta)), na.rm = T)
+  
+  return(ifelse(neg, -loglik, loglik))
+}
+
+mle.beta.solutions <- optim(par = guess,
+      fn = llbeta,
+      data = worldbank2022$death.rate,
+      neg = T
+)
+
+mom.mle.results <- tibble(
+  Method = c("MOM", "MLE"),
+  alpha = c(mom.beta.solutions$x[1], mle.beta.solutions$par[1]),
+  beta = c(mom.beta.solutions$x[2], mle.beta.solutions$par[2])
+)
+table4 <- xtable(mom.mle.results,
+                 caption = "Parameter Estimations", 
+                 label = "Table 4")  # for LaTeX
+@
+<<echo=FALSE, eval=TRUE, results="asis">>=
+print(table4,
+      table.placement = "H", 
+      include.rownames = FALSE, 
+      size = "small", 
+      caption.placement = "bottom")
+@
+To analyze the MLE and MOM estimators preformance, we found the MOM and MLE estimates for 1,000 samples with \(\text{Beta}(\alpha = 8, \beta = 950)\) and plotted the density estimates for \(\alpha\) and \(\beta\). Coinciding with the plot, the bias, precision, and mean squared error were also calculated for the estimates (Table \ref{Table 5}). Figure \ref{plot6} shows that both the MLE and MOM provide good estimates, but the MLE is slightly more precise.  
 
 \section{Discussion}
-
+Through both theoretical and empirical analysis, we can see how the beta distribution preforms with various data and parameters. The shape of the beta distribution can change, measured by skewness, based on varying the parameters of \(\alpha\) and \(\beta\). We also highlighted how sample size influences the accuracy of estimates of numerical statistics due to LLN. To answer the question of which estimator is more efficient in estimating the parameters, we can see in our real-world example that MLE showed slightly better precision, but both MOM and MLE provided sufficient estimations. Overall, the results of this lab emphasize the flexibility of the beta distribution.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Bibliography
@@ -193,7 +275,7 @@ four.case.plot <- plot1+plot2+plot3+plot4
 @
 \begin{figure}[H]
 \begin{center}
-<<echo=FALSE, warning=FALSE, message=FALSE, fig.dim=c(5,3.5)>>=
+<<echo=FALSE, warning=FALSE, message=FALSE, fig.dim=c(11,8.5), fig.align='center'>>=
 four.case.plot
 @
 \caption{Population Distribution Plot by Case}
@@ -459,7 +541,7 @@ table3 <- xtable(confirmed.results,
 <<echo=FALSE, warning=FALSE, message=FALSE, fig.dim=c(11,8.5), fig.align='center'>>=
 sample.combined
 @
-\caption{Sample Plot by Four Beta Distributions}
+\caption{Sample Plot by Four Beta Distributions \citep{e1071}}
 \label{plot2} 
 \end{center}
 \end{figure}
@@ -471,5 +553,371 @@ print(table3,
       size = "small", 
       caption.placement = "bottom")
 @
+
+<<plot3, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, size='scriptsize'>>=
+################################################################################
+# Task 4: Is Sample Size Important?
+################################################################################
+library(cumstats)
+#help("cumstats")
+# cunstats overides e1071::skewness and e1071::kurtosis
+
+set.seed(7272) # Set seed so we all get the same results.
+sample.size <- 500 # Specify sample details
+alpha <- 2
+beta <- 5
+beta.sample.1 <- rbeta(n = sample.size,  # sample size
+                       shape1 = alpha,   # alpha parameter
+                       shape2 = beta)    # beta parameter
+# fig1.data <-  tibble(x = seq(-0.25, 1.25, length.out=1000))|>   # generate a grid of points
+#   mutate(beta.pdf = dbeta(x, alpha, beta))
+true.mean <- alpha/(alpha+beta)
+true.variance <- (alpha*beta)/((alpha + beta)^2 * (alpha + beta + 1))
+true.skewness <- (2*(beta - alpha)*sqrt(alpha + beta +1))/((alpha + beta + 2)*sqrt(alpha*beta))
+true.kurtosis <- ( 6 * ((alpha-beta)^2 * (alpha + beta + 1) - ((alpha*beta)*(alpha+beta+2))))/
+  ((alpha*beta)*(alpha + beta + 2)*(alpha + beta +3))
+
+cumulative.sum <- data.frame(
+    Alpha = alpha,
+    Beta = beta,
+    mean =cummean(beta.sample.1),
+    variance = cumvar(beta.sample.1),
+    skewness = cumskew(beta.sample.1),
+    kurtosis = cumkurt(beta.sample.1)-3 # regular kurtosis
+  )
+cumulative.sum <- cumulative.sum|>
+  mutate(observation = 1:n())
+
+cs.mean1 <- ggplot(data = cumulative.sum)+
+        geom_line(aes(x=observation, y = mean, color = "Cumulative Mean"), show.legend = F) + 
+        geom_hline(yintercept = true.mean)+
+        labs(title = "Cumulative Mean Across Sample Sizes",
+             x = "Sample Size",
+             y = "Mean",
+             color = "")
+  
+cs.var1 <- ggplot(data = cumulative.sum)+
+  geom_line(aes(x=observation, y = variance, color = "Cumulative Variance"), show.legend = F) + 
+  geom_hline(yintercept = true.variance)+
+  labs(title = "Cumulative Variance Across Sample Sizes",
+       x = "Sample Size",
+       y = "Variance",
+       color = "")
+
+cs.skew1 <- ggplot(data = cumulative.sum)+
+  geom_line(aes(x=observation, y = skewness, color = "Cumulative Skewness"), show.legend = F) + 
+  geom_hline(yintercept = true.skewness)+
+  labs(title = "Cumulative Skewness Across Sample Sizes",
+       x = "Sample Size",
+       y = "Skewness",
+       color = "")
+
+cs.kurt1 <- ggplot(data = cumulative.sum)+
+  geom_line(aes(x=observation, y = kurtosis, color = "Cumulative Regular Kurtosis"), show.legend = F) + 
+  geom_hline(yintercept = true.kurtosis)+
+  labs(title = "Cumulative Kurtosis Across Sample Sizes",
+       x = "Sample Size",
+       y = "Kurtosis",
+       color = "")
+        
+cs.1 <- cs.mean1 + cs.var1 + cs.skew1 + cs.kurt1
+  
+
+# New Data 
+
+for (i in (2:50)){
+  set.seed(7272+i) # Set seed so we all get the same results.
+  sample.size <- 500 # Specify sample details
+  alpha <- 2
+  beta <- 5
+  beta.sample.1 <- rbeta(n = sample.size,  # sample size
+                         shape1 = alpha,   # alpha parameter
+                         shape2 = beta)    # beta parameter
+
+  
+  cumulative.sum <- data.frame(
+    Alpha = alpha,
+    Beta = beta,
+    mean =cummean(beta.sample.1),
+    variance = cumvar(beta.sample.1),
+    skewness = cumskew(beta.sample.1),
+    kurtosis = cumkurt(beta.sample.1)-3 # regular kurtosis
+  )
+  cumulative.sum <- cumulative.sum|>
+    mutate(observation = 1:n())
+  
+  cs.mean1 <- cs.mean1 +
+    geom_line(data = cumulative.sum, aes(x = observation, y = mean), color = i)
+  
+  cs.var1 <- cs.var1 +
+    geom_line(data = cumulative.sum, aes(x = observation, y = variance), color = i)
+  
+  cs.skew1 <- cs.skew1 +
+    geom_line(data = cumulative.sum, aes(x = observation, y = skewness), color = i)
+  
+  cs.kurt1 <- cs.kurt1 +
+    geom_line(data = cumulative.sum, aes(x = observation, y = kurtosis), color = i)
+  
+  cs.1 <- cs.mean1 + cs.var1 + cs.skew1 + cs.kurt1
+  
+}
+
+@
+\begin{figure}[H]
+\begin{center}
+<<echo=FALSE, warning=FALSE, message=FALSE, fig.dim=c(11,8.5), fig.align='center'>>=
+cs.1
+@
+\caption{Cumulative Stats For Increasing Sample Sizes}
+\label{plot3} 
+\end{center}
+\end{figure}
+
+<<plot4, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, size='scriptsize'>>=
+################################################################################
+# Task 5: How can we model the variable?
+################################################################################
+new.results <- data.frame()
+
+for (i in 1:1000){
+  set.seed(7272+i) # Set seed so we all get the same results.
+  sample.size <- 500 # Specify sample details
+  alpha <- 2
+  beta <- 5
+  beta.sample.1 <- rbeta(n = sample.size,  # sample size
+                         shape1 = alpha,   # alpha parameter
+                         shape2 = beta)    # beta parameter
+  
+  results <- data.frame(
+    Alpha = alpha,
+    Beta = beta,
+    mean =mean(beta.sample.1),
+    variance = var(beta.sample.1),
+    skewness = e1071::skewness(beta.sample.1),
+    kurtosis = e1071::kurtosis(beta.sample.1)-3 
+  )
+  
+  new.results <- bind_rows(new.results, results)
+  
+}
+view(new.results)
+
+# Plot Histograms for Each Statistic with Estimated Density
+# Mean Plot
+mean.plot <- ggplot() +
+  geom_histogram(data = new.results, aes(x = mean, y = after_stat(density)), 
+                 bins = 40,  # number of bins, dividing data 
+                 fill = "grey30",
+                 color = "lightgray")+
+  geom_density(data = new.results,
+               aes(x = mean,
+                   color = "Density"))+
+  labs(title = "Histogram of Means", 
+       x = "Mean", 
+       y = "Density",
+       color = "Lines")
+
+# Variance Plot
+var.plot <- ggplot() +
+  geom_histogram(data = new.results, aes(x = variance, y = after_stat(density)), 
+                 bins = 40, 
+                 fill = "grey30",
+                 color = "lightgray")+
+  geom_density(data = new.results,
+               aes(x = variance,
+                   color = "Density"))+
+  labs(title = "Histogram of Variance", 
+       x = "Variance", 
+       y = "Density",
+       color = "Lines")
+
+# Skewness Plot
+skew.plot <- ggplot() +
+  geom_histogram(data = new.results, aes(x = skewness, y = after_stat(density)), 
+                 bins = 40,
+                 fill = "grey30",
+                 color = "lightgray")+
+  geom_density(data = new.results,
+               aes(x = skewness,
+                   color = "Density"))+
+  labs(title = "Histogram of Skewness", 
+       x = "Skewness", 
+       y = "Density",
+       color = "Lines")
+
+# Excess Kurtosis Plot
+kurt.plot <- ggplot() +
+  geom_histogram(data = new.results, aes(x = kurtosis, y = after_stat(density)), 
+                 bins = 40,
+                 fill = "grey30",
+                 color = "lightgray")+
+  geom_density(data = new.results,
+               aes(x = kurtosis,
+                   color = "Density"))+
+  labs(title = "Histogram of Excess Kurtosis", 
+       x = "Excess Kurtosis", 
+       y = "Density",
+       color = "Lines")
+
+new.data.histogram <- mean.plot + var.plot + skew.plot + kurt.plot + plot_layout(guides = "collect")
+@
+\begin{figure}[H]
+\begin{center}
+<<echo=FALSE, warning=FALSE, message=FALSE, fig.dim=c(11,8.5), fig.align='center'>>=
+new.data.histogram
+@
+\caption{Histogram of Statistics}
+\label{plot4} 
+\end{center}
+\end{figure}
+
+<<plot5, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, size='scriptsize'>>=
+# Plot Histogram of Data
+beta.data <- tibble(death.rate = seq(min(worldbank2022$death.rate, na.rm = T), 
+                                     max(worldbank2022$death.rate, na.rm = T), 
+                                     length.out = 1000)) |>
+  mutate(
+    mom.density = dbeta(death.rate, mom.beta.solutions$x[1], mom.beta.solutions$x[2]),
+    mle.density = dbeta(death.rate, mle.beta.solutions$par[1], mle.beta.solutions$par[2])
+  )
+view(beta.data)
+
+histogram.2022 <- ggplot() +
+  geom_histogram(data = worldbank2022, aes(x = death.rate, y = after_stat(density)), 
+                 bins = 40,
+                 fill = "pink",
+                 color = "lightgray")+
+  geom_line(data = beta.data, aes(x = death.rate, y = mom.density, color = "MOM Estimate"))+
+  geom_line(data = beta.data, aes(x = death.rate, y = mle.density, color = "MLE Estimate"))+
+  geom_density(data = worldbank2022,
+               aes(x = death.rate,
+                   color = "Density"))+
+  labs(title = "Histogram of Death Rate", 
+       x = "Death Rate", 
+       y = "Density",
+       color = "Legend")
+@
+\begin{figure}[H]
+\begin{center}
+<<echo=FALSE, warning=FALSE, message=FALSE, fig.dim=c(11,8.5), fig.align='center'>>=
+histogram.2022
+@
+\caption{Histogram of Death Rate}
+\label{plot5} 
+\end{center}
+\end{figure}
+
+<<plot6, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, size='scriptsize'>>=
+estimates <- data.frame( mom.alpha = numeric(1000),
+                         mom.beta = numeric(1000),
+                         mle.alpha = numeric(1000),
+                         mle.beta = numeric(1000))
+for (i in (1:1000)){
+  set.seed(7272+i) # Set seed so we all get the same results.
+  sample.size <- 266 # n = 266
+  alpha <- 8
+  beta <- 950
+  beta.dat <- rbeta(n = sample.size,  # sample size
+                         shape1 = alpha,   # alpha parameter
+                         shape2 = beta)    # beta parameter
+  
+  
+  guess <- c(alpha, beta)
+  mom.beta.sol <- nleqslv(x = guess, # guess
+                                fn = MOM.beta,
+                                data=beta.dat)
+  mom.beta <- mom.beta.sol$x[2]
+  mom.alpha <- mom.beta.sol$x[1]
+  
+  mle.beta.sol <- optim(par = guess,
+                              fn = llbeta,
+                              data = beta.dat,
+                              neg = T)
+  
+  mle.beta <- mle.beta.sol$par[2]
+  mle.alpha <- mle.beta.sol$par[1]
+  
+  estimates[i, ] <- c(mom.alpha, mom.beta, mle.alpha, mle.beta)
+  
+}
+
+# True Parameters
+alphaT <- 8
+betaT <- 950
+
+# Bias for Estimates
+bias.mom.alpha <- mean(estimates$mom.alpha) - alphaT
+bias.mom.beta <- mean(estimates$mom.beta) - betaT
+
+bias.mle.alpha <- mean(estimates$mle.alpha) - alphaT
+bias.mle.beta <- mean(estimates$mle.beta) - betaT
+
+# Precision for Estimates
+precision.mom.alpha <- 1 / var(estimates$mom.alpha)
+precision.mom.beta <- 1 / var(estimates$mom.beta)
+
+precision.mle.alpha <- 1 / var(estimates$mle.alpha)
+precision.mle.beta <- 1 / var(estimates$mle.beta)
+
+# Mean Squared Error for Estimates
+mse.mom.alpha <- var(estimates$mom.alpha) + bias.mom.alpha^2
+mse.mom.beta <- var(estimates$mom.beta) + bias.mom.beta^2
+
+mse.mle.alpha <- var(estimates$mle.alpha) + bias.mle.alpha^2
+mse.mle.beta <- var(estimates$mle.beta) + bias.mle.beta^2
+
+# Summary Table
+summary.table <- data.frame(
+  Parameter = c("Alpha", "Beta"),
+  Bias_MOM = c(bias.mom.alpha, bias.mom.beta),
+  Bias_MLE = c(bias.mle.alpha, bias.mle.beta),
+  Precision_MOM = c(precision.mom.alpha, precision.mom.beta),
+  Precision_MLE = c(precision.mle.alpha, precision.mle.beta),
+  MSE_MOM = c(mse.mom.alpha, mse.mom.beta),
+  MSE_MLE = c(mse.mle.alpha, mse.mle.beta)
+)
+# Table with Values
+table5 <- xtable(summary.table,
+                caption = "Summary for MLE and MOM", 
+                label = "Table 5")  
+
+plot.alpha <- ggplot() +
+  geom_density(data=estimates, aes(x=mom.alpha, color="MOM"), na.rm = T) +
+  geom_density(data=estimates, aes(x=mle.alpha, color="MLE"), na.rm = T) +
+  theme_bw() +
+  ggtitle("Alpha Density") +
+  xlab("Alpha") +
+  ylab("Density") +
+  scale_color_manual(name = "Estimator", values = c("MOM" = "blue", "MLE" = "red"))
+
+plot.beta <- ggplot() +
+  geom_density(data=estimates, aes(x=mom.beta, color="MOM"), na.rm = T) +
+  geom_density(data=estimates, aes(x=mle.beta, color="MLE"), na.rm = T) +
+  theme_bw() +
+  ggtitle("Beta Density") +
+  xlab("Beta") +
+  ylab("Density") +
+  scale_color_manual(name = "Estimator", values = c("MOM" = "blue", "MLE" = "red"))
+
+density.mom.mle <- plot.alpha + plot.beta +  plot_layout(guides = "collect")
+
+@
+\begin{figure}[H]
+\begin{center}
+<<echo=FALSE, warning=FALSE, message=FALSE, fig.dim=c(11,8.5), fig.align='center'>>=
+density.mom.mle
+@
+\caption{Density for MOM and MLE: Alpha and Beta Estimates}
+\label{plot6} 
+\end{center}
+\end{figure}
+<<echo=FALSE, eval=TRUE, results="asis">>=
+print(table5,
+      table.placement = "H", 
+      include.rownames = FALSE, 
+      size = "small", 
+      caption.placement = "bottom")
+@
+
 
 \end{document}

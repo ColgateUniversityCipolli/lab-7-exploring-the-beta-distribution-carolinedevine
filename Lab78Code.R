@@ -592,6 +592,15 @@ mle.beta.solutions <- optim(par = guess,
       neg = T
 )
 
+mom.mle.results <- tibble(
+  Method = c("MOM", "MLE"),
+  alpha = c(mom.beta.solutions$x[1], mle.beta.solutions$par[1]),
+  beta = c(mom.beta.solutions$x[2], mle.beta.solutions$par[2])
+)
+table4 <- xtable(mom.mle.results,
+                 caption = "Parameter Estimations", 
+                 label = "Table 4")  # for LaTeX
+
 # Plot Histogram of Data
 beta.data <- tibble(death.rate = seq(min(worldbank2022$death.rate, na.rm = T), 
                                      max(worldbank2022$death.rate, na.rm = T), 
@@ -647,8 +656,8 @@ for (i in (1:1000)){
                               data = beta.dat,
                               neg = T)
   
-  mle.beta <- mom.beta.sol$par[2]
-  mle.alpha <- mom.beta.sol$par[1]
+  mle.beta <- mle.beta.sol$par[2]
+  mle.alpha <- mle.beta.sol$par[1]
   
   estimates[i, ] <- c(mom.alpha, mom.beta, mle.alpha, mle.beta)
   
@@ -721,8 +730,8 @@ density.plot.4 <- ggplot() +
 plots <- density.plot.1 + density.plot.2 + density.plot.3 + density.plot.4 +  plot_layout(guides = "collect")
 
 plot.alpha <- ggplot() +
-  geom_density(data=estimates, aes(x=mom.alpha, color="MOM")) +
-  geom_density(data=estimates, aes(x=mle.alpha, color="MLE")) +
+  geom_density(data=estimates, aes(x=mom.alpha, color="MOM"), na.rm = T) +
+  geom_density(data=estimates, aes(x=mle.alpha, color="MLE"), na.rm = T) +
   theme_bw() +
   ggtitle("Alpha Density") +
   xlab("Alpha") +
@@ -730,13 +739,14 @@ plot.alpha <- ggplot() +
   scale_color_manual(name = "Estimator", values = c("MOM" = "blue", "MLE" = "red"))
 
 plot.beta <- ggplot() +
-  geom_density(data=estimates, aes(x=mom.beta, color="MOM")) +
-  geom_density(data=estimates, aes(x=mle.beta, color="MLE")) +
+  geom_density(data=estimates, aes(x=mom.beta, color="MOM"), na.rm = T) +
+  geom_density(data=estimates, aes(x=mle.beta, color="MLE"), na.rm = T) +
   theme_bw() +
   ggtitle("Beta Density") +
   xlab("Beta") +
   ylab("Density") +
   scale_color_manual(name = "Estimator", values = c("MOM" = "blue", "MLE" = "red"))
 
-plot.alpha + plot.beta +  plot_layout(guides = "collect")
+density.mom.mle <- plot.alpha + plot.beta +  plot_layout(guides = "collect")
+
 
